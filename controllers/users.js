@@ -14,7 +14,6 @@ UsersController.getProfile = async (req, res) => {
 			_id,
 			name: user.name,
 			createdAt: user.createdAt,
-			country: user.country,
 		});
 	} catch (er) {
 		next(er);
@@ -26,8 +25,11 @@ UsersController.signUp = async (req, res, next) => {
 	try {
 		const user = await User.findOne({ email: userObj.email });
 		if (!user) {
-			await User.create({ ...userObj });
-			res.status(201).json({ message: 'Signup Successful' });
+      const createdUser = await User.create({ ...userObj });
+      const body = { _id: createdUser._id, email: createdUser.email, name: createdUser.name };
+      const token = jwt.sign({ user: body }, JWT_SECRET);
+
+			res.status(201).json({ message: 'Signup Successful', user: body, token });
 		} else {
 			res.status(400).json({
 				key: 'userPresent',
@@ -52,7 +54,7 @@ UsersController.login = (req, res, next) => {
 				}
 				//We don't want to store the sensitive information such as the
 				//user password in the token so we pick only the email and id
-				const body = { _id: user._id, email: user.email };
+				const body = { _id: user._id, email: user.email, name: user.name };
 				//Sign the JWT token and populate the payload with the user email and id
 				const token = jwt.sign({ user: body }, JWT_SECRET);
 				//Send back the token to the user
