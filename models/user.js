@@ -17,18 +17,14 @@ const UserSchema = new Schema({
   password: {
     type: String,
     required: true,
-    default: null
-  },
-  type: {
-    type: String,
-    default: 'user',
-    enum: ['user', 'admin', 'superAdmin'],
+    minlength: 8
   },
 }, {
   timestamps: true,
 });
 
-UserSchema.pre('save', (next) => {
+/** Dont use arrow function to maintain "this" */
+UserSchema.pre('save', function(next) {
   const user = this;
 
   if (user.isModified('password')) {
@@ -43,7 +39,7 @@ UserSchema.pre('save', (next) => {
   }
 });
 
-UserSchema.methods.isValidPassword = async (password) => {
+UserSchema.methods.isValidPassword = async function (password) {
   const user = this;
   // Hashes the password sent by the user for login and checks if the hashed password stored in the
   // database matches the one sent. Returns true if it does else false.
